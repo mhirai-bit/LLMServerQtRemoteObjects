@@ -1,49 +1,42 @@
 #ifndef LLAMA_RESPONSE_GENERATOR_H
 #define LLAMA_RESPONSE_GENERATOR_H
 
+#include "rep_LlamaResponseGenerator_source.h" // 生成されたソースヘッダ
+#include "llama.h"
 #include <QObject>
 #include <QString>
-#include "llama.h"
 
-// This class handles text generation for LLaMA-based models.
-// It is typically used in a worker thread to generate responses asynchronously.
-class LlamaResponseGenerator : public QObject {
+/*
+  LlamaResponseGeneratorSimpleSource（または LlamaResponseGeneratorSource）を継承し、
+  repファイルで宣言した generate(...) スロットや partialResponseReady(...) シグナルなどを
+  実装／emit できるようにする。
+*/
+class LlamaResponseGenerator : public LlamaResponseGeneratorSimpleSource
+{
     Q_OBJECT
 
 public:
-    // Disallow default construction to ensure model/context are always provided.
-    LlamaResponseGenerator() = delete;
+    // コンストラクタ: llama_model / llama_context を受け取る
+    explicit LlamaResponseGenerator(QObject *parent = nullptr,
+                                    llama_model *model = nullptr,
+                                    llama_context *ctx = nullptr);
 
-    // Constructor expects a LLaMA model, a context, and an optional parent.
-    // 'parent' may be nullptr when the object is moved to another thread.
-    LlamaResponseGenerator(QObject *parent = nullptr,
-                           llama_model* model = nullptr,
-                           llama_context* ctx = nullptr);
-
-    // Cleans up any allocated resources (e.g. the sampler) on destruction.
+    // デストラクタ: sampler があれば破棄
     ~LlamaResponseGenerator() override;
 
-public slots:
-    // Generates text from the provided prompt, emitting partial and final results.
-    void generate(const QString &prompt);
-
-signals:
-    // Emitted periodically with incremental output during generation.
-    void partialResponseReady(const QString &textSoFar);
-
-    // Emitted once the entire generation process is complete.
-    void generationFinished(const QString &finalResponse);
-
-    // Emitted in case of an error (e.g., tokenization failure).
-    void generationError(const QString &errorMessage);
+    // repファイルで定義したスロットをオーバーライドする
+    // 「rep_LlamaResponseGenerator_source.h」で
+    //   virtual void generate(const QString & request) = 0;
+    // と宣言されているため、必須実装
+    void generate(const QString &request) override;
 
 private:
-    // References to the LLaMA model and context used for generation.
-    llama_model* m_model {nullptr};
-    llama_context* m_ctx {nullptr};
-    llama_sampler* m_sampler {nullptr};
+    // llama_context / llama_model / llama_sampler
+    llama_model   *m_model   { nullptr };
+    llama_context *m_ctx     { nullptr };
+    llama_sampler *m_sampler { nullptr };
 
-    // Initializes the sampler (temperature, min_p, etc.) before text generation.
+    // 実際にテキスト生成する前の初期化処理
     void initializeSampler();
 };
 
