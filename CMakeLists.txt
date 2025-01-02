@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.21.1)
 
-project(LLMServerQtRemoteObjects LANGUAGES CXX)
+project(LLMServerQtRemoteObjects VERSION 1.0.0 LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 include(cmake/download_llama_model.cmake)
 include(cmake/llama_setup.cmake)
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS RemoteObjects)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Core RemoteObjects)
 
 if (Qt6_VERSION VERSION_GREATER_EQUAL 6.3)
     qt_standard_project_setup()
