@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-include(cmake/download_llama_model.cmake)
 include(cmake/llama_setup.cmake)
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core RemoteObjects)
@@ -61,10 +60,6 @@ set(ALL_LIBS
 target_include_directories(LLMServerQtRemoteObjects PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/llama.cpp/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/llama.cpp/ggml/include
-)
-
-target_compile_definitions(LLMServerQtRemoteObjects PRIVATE
-    LLAMA_MODEL_FILE="${LLAMA_MODEL_NAME}"
 )
 
 if(APPLE)
