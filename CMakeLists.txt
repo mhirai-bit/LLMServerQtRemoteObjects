@@ -7,8 +7,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 include(cmake/llama_setup.cmake)
+include(cmake/download_llama_model.cmake)
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Core RemoteObjects)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Core RemoteObjects Concurrent)
 
 if (Qt6_VERSION VERSION_GREATER_EQUAL 6.3)
     qt_standard_project_setup()
@@ -18,6 +19,14 @@ qt_add_executable(LLMServerQtRemoteObjects
     main.cpp
     llamaresponsegenerator.cpp
     llamaresponsegenerator.h
+)
+
+# ----------------------------------------------------------------------------
+# C++コードからダウンロード済みの gguf モデルファイル名を参照できるようにする
+# Enable referencing the downloaded gguf model file name from C++ code
+# ----------------------------------------------------------------------------
+target_compile_definitions(LLMServerQtRemoteObjects PRIVATE
+    LLAMA_MODEL_FILE="${LLAMA_MODEL_NAME}"
 )
 
 qt6_add_repc_sources(LLMServerQtRemoteObjects
@@ -94,8 +103,21 @@ endif()
 target_link_libraries(LLMServerQtRemoteObjects PRIVATE
     Qt6::Core
     Qt6::RemoteObjects
+    Qt6::Concurrent
     ${LLAMA_LIB}
     ${GGML_LIB}
+)
+
+# ----------------------------------------------------------------------------
+# ダウンロードした gguf モデルファイルをアプリ実行ファイルの横にコピー
+# Copy the downloaded gguf model file next to the app executable
+# ----------------------------------------------------------------------------
+add_custom_command(
+    TARGET LLMServerQtRemoteObjects POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_LIST_DIR}/llama_models/${LLAMA_MODEL_NAME}"
+        "$<TARGET_FILE_DIR:LLMServerQtRemoteObjects>"
+    COMMENT "Copying ${LLAMA_MODEL_NAME} next to the QllamaTalkApp binary"
 )
 
 include(GNUInstallDirs)

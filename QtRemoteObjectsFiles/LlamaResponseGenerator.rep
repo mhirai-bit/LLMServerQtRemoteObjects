@@ -1,7 +1,11 @@
 #include <QtCore>
+
+POD LlamaChatMessage(QString role, QString content);
+
 class LlamaResponseGenerator
 {
-    SLOT(generate(const QString &request));
+    PROP(bool remoteInitialized = false);
+    SLOT(generate(const QList<LlamaChatMessage> &messages));
     SIGNAL(partialResponseReady(const QString &textSoFar));
     SIGNAL(generationFinished(const QString &finalResponse));
     SIGNAL(generationError(const QString &errorMessage));

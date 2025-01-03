@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 
     LlamaResponseGenerator llamaResponseGenerator;
 
-    QRemoteObjectHost srcNode(QUrl(QStringLiteral("local:replica")));
+    QRemoteObjectHost srcNode(QUrl(QStringLiteral("tcp://0.0.0.0:12345")));
     srcNode.enableRemoting(&llamaResponseGenerator);
 
     return app.exec();
