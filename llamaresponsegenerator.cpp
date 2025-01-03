@@ -158,6 +158,9 @@ void LlamaResponseGenerator::generate(const QList<LlamaChatMessage>& messages)
                 break;
             }
         }
+
+        // This enables immediate sending of partial results to the client
+        QCoreApplication::processEvents();
     }
 
     // Update prev_len
