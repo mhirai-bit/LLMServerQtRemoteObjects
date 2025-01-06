@@ -15,7 +15,7 @@ set(LLAMA_MODEL_NAME "llama-3.1-8b-open-sft-q4_k_m.gguf")
 
 # Set destination path
 # ダウンロード先のパス設定
-set(LLAMA_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/content/llama_models")
+set(LLAMA_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/llama_models")
 set(LLAMA_MODEL_OUTPUT_PATH "${LLAMA_MODEL_DIR}/${LLAMA_MODEL_NAME}")
 
 message(STATUS "----- Llama Model Download Setup -----")
