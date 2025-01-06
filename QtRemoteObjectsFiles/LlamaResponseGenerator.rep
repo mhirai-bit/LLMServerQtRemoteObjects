@@ -6,6 +6,7 @@ class LlamaResponseGenerator
 {
     PROP(bool remoteInitialized = false);
     SLOT(generate(const QList<LlamaChatMessage> &messages));
+    SLOT(reinitEngine());
     SIGNAL(partialResponseReady(const QString &textSoFar));
     SIGNAL(generationFinished(const QString &finalResponse));
     SIGNAL(generationError(const QString &errorMessage));

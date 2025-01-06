@@ -35,24 +35,28 @@ public:
     // Overridden generate(...) from .rep
     // .rep ファイルの generate(...) をオーバーライド
     void generate(const QList<LlamaChatMessage>& messages) override;
+    void reinitEngine() override;
+
+signals:
+    void reinitialized();
 
 private:
     // Internal parameters
     // 内部パラメータ
-    static constexpr int m_n_gl  {99};
-    static constexpr int m_n_ctx {2048};
+    static constexpr int mNGl  {99};
+    static constexpr int mNCtx {2048};
 
     // Default model path (via CMake)
     // デフォルトのモデルパス (CMakeで定義)
-    static const std::string m_model_path;
+    static const std::string mModelPath;
 
     // Holds llama params/context/model/sampler
     // llama 用パラメータ／コンテキスト／モデル／サンプラーを保持
-    llama_model_params m_model_params;
-    llama_sampler*     m_sampler     {nullptr};
-    llama_model*       m_model       {nullptr};
-    llama_context_params m_ctx_params;
-    llama_context*       m_ctx       {nullptr};
+    llama_model_params mModelParams;
+    llama_sampler*     mSampler    {nullptr};
+    llama_model*       mModel      {nullptr};
+    llama_context_params mCtxParams;
+    llama_context*       mCtx      {nullptr};
 
     // Runs heavy init in separate thread
     // 別スレッドでの重い初期化処理
@@ -60,7 +64,7 @@ private:
 
     // Convert QList<LlamaChatMessage> -> std::vector<llama_chat_message>
     // QList<LlamaChatMessage>からstd::vector<llama_chat_message>に変換
-    std::vector<llama_chat_message> to_llama_messages(const QList<LlamaChatMessage> &user_messages);
+    std::vector<llama_chat_message> to_llama_messages(const QList<LlamaChatMessage> &userMessages);
 };
 
 #endif // LLAMA_RESPONSE_GENERATOR_H
