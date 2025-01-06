@@ -91,7 +91,6 @@ void LlamaResponseGenerator::generate(const QList<LlamaChatMessage>& messages)
             true) < 0)
     {
         emit generationError("failed to tokenize the prompt");
-        // reinitEngine();
         return;
     }
 
@@ -110,7 +109,6 @@ void LlamaResponseGenerator::generate(const QList<LlamaChatMessage>& messages)
         const int nCtxUsed = llama_get_kv_cache_used_cells(mCtx);
         if (llama_decode(mCtx, batch)) {
             emit generationError("failed to decode");
-            // reinitEngine();
             break;
         }
 
@@ -128,7 +126,6 @@ void LlamaResponseGenerator::generate(const QList<LlamaChatMessage>& messages)
         int n = llama_token_to_piece(mModel, newTokenId, buf, sizeof(buf), 0, true);
         if (n < 0) {
             emit generationError("failed to convert token to piece");
-            // reinitEngine();
             break;
         }
 
