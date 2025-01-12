@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 include(cmake/llama_setup.cmake)
 include(cmake/download_llama_model.cmake)
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Core RemoteObjects Concurrent)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Core RemoteObjects Concurrent WebSockets)
 
 if (Qt6_VERSION VERSION_GREATER_EQUAL 6.3)
     qt_standard_project_setup()
@@ -22,6 +22,8 @@ qt_add_executable(LLMServerQtRemoteObjects
 
     inferenceengine.h inferenceengine.cpp
     qtroremotegenerator.h qtroremotegenerator.cpp
+    QtWSRemoteGenerator.h QtWSRemoteGenerator.cpp
+    ClientHandler.h ClientHandler.cpp
 )
 
 # ----------------------------------------------------------------------------
@@ -107,6 +109,7 @@ target_link_libraries(LLMServerQtRemoteObjects PRIVATE
     Qt6::Core
     Qt6::RemoteObjects
     Qt6::Concurrent
+    Qt6::WebSockets
     ${LLAMA_LIB}
     ${GGML_LIB}
 )

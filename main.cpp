@@ -1,4 +1,5 @@
 #include "qtroremotegenerator.h"
+#include "QtWSRemoteGenerator.h"
 #include <QCoreApplication>
 
 int main(int argc, char *argv[])
@@ -12,6 +13,9 @@ int main(int argc, char *argv[])
 
     QRemoteObjectHost srcNode(QUrl(QStringLiteral("tcp://0.0.0.0:12345")));
     srcNode.enableRemoting(&llamaResponseGenerator);
+
+    QtWSRemoteGenerator wsRemoteGenerator;
+    wsRemoteGenerator.startServer(12346);
 
     return app.exec();
 }

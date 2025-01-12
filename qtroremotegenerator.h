@@ -3,7 +3,6 @@
 
 #include "rep_LlamaResponseGenerator_source.h"  // Short definitions from .rep file / .repファイルからの定義
 #include "inferenceengine.h"
-#include "llama.h"
 #include <QObject>
 #include <QString>
 
