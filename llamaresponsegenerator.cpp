@@ -30,6 +30,8 @@ LlamaResponseGenerator::~LlamaResponseGenerator()
 // generate(...): トークナイズ、デコード、途中／最終をemit
 void LlamaResponseGenerator::generate(const QList<LlamaChatMessage>& messages)
 {
+    qDebug() << "Generating response...";
+
     static std::vector<char> formatted(llama_n_ctx(mCtx));
     static int prevLen {0};
 
@@ -130,6 +132,8 @@ void LlamaResponseGenerator::generate(const QList<LlamaChatMessage>& messages)
         }
 
         std::string piece(buf, n);
+        qDebug() << piece;
+
         response += piece;
 
         // Emit partial progress
