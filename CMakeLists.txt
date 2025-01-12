@@ -19,6 +19,9 @@ qt_add_executable(LLMServerQtRemoteObjects
     main.cpp
     llamaresponsegenerator.cpp
     llamaresponsegenerator.h
+
+    inferenceengine.h inferenceengine.cpp
+    qtroremotegenerator.h qtroremotegenerator.cpp
 )
 
 # ----------------------------------------------------------------------------
