@@ -1,3 +1,6 @@
+// ================================================================
+// InferenceEngine.h
+// ================================================================
 #ifndef INFERENCEENGINE_H
 #define INFERENCEENGINE_H
 
@@ -172,6 +175,14 @@ private:
         - QList<LlamaChatMessage>をstd::vector<llama_chat_message>に変換
     */
     std::vector<llama_chat_message> to_llama_messages(const QList<LlamaChatMessage> &userMessages);
+
+    // ======================
+    // Remove "static" usage
+    // ======================
+    // For each InferenceEngine instance, maintain its own buffer
+    // → これでスレッドセーフに（複数エンジンが同時生成しても競合しない）
+    std::vector<char> mFormattedBuffer;
+    int mPrevLen = 0;
 };
 
 #endif // INFERENCEENGINE_H

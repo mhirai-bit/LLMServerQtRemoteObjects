@@ -3,6 +3,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QDebug>
+#include <QThreadPool>
 
 /*
   Constructor:
@@ -101,7 +102,10 @@ void ClientHandler::onTextMessageReceived(const QString &message)
             chatMsg.setContent(mobj.value(QStringLiteral("content")).toString());
             messageList.append(chatMsg);
         }
-        m_inference.generate(messageList);
+        // blocking the main thread with generate() for too long seems to break the WebSockets connections
+        QThreadPool::globalInstance()->start([this, messageList](){
+            m_inference.generate(messageList);
+        });
 
     } else if (action == QLatin1String("reinit")) {
         // Handle "reinit"
