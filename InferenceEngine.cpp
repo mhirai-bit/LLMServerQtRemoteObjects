@@ -2,6 +2,14 @@
 #include <QDebug>
 #include <QThreadPool>
 
+/*
+  Constructor:
+    - Optionally receives a llama_model and llama_context
+    - Spawns a thread to handle do_engine_init() asynchronously
+  コンストラクタ:
+    - llama_model, llama_contextを任意で受け取れる
+    - do_engine_init()を非同期実行するスレッドを開始
+*/
 InferenceEngine::InferenceEngine(QObject *parent,
                                  llama_model *model,
                                  llama_context *ctx)
@@ -9,11 +17,19 @@ InferenceEngine::InferenceEngine(QObject *parent,
     , mModel(model)
     , mCtx(ctx)
 {
+    // Start initialization in background
+    // バックグラウンドで初期化開始
     QThreadPool::globalInstance()->start([this]() {
         do_engine_init();
     });
 }
 
+/*
+  Destructor:
+    - If mSampler is allocated, free it
+  デストラクタ:
+    - mSamplerが割り当てられていれば解放する
+*/
 InferenceEngine::~InferenceEngine()
 {
     if (mSampler) {
@@ -22,6 +38,14 @@ InferenceEngine::~InferenceEngine()
     }
 }
 
+/*
+  generate(messages):
+    - Tokenizes and decodes user messages to produce text
+    - Emits partial/final responses during generation
+  generate(messages):
+    - ユーザーメッセージをトークナイズ/デコードしてテキスト生成
+    - 推論過程で部分/最終レスポンスをemitする
+*/
 void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
 {
     qDebug() << "Generating response...";
@@ -29,12 +53,12 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
     static std::vector<char> formatted(llama_n_ctx(mCtx));
     static int prevLen {0};
 
-    // Convert to llama messages
-    // llama用のメッセージ形式に変換
+    // Convert messages to llama format
+    // メッセージをllama形式に変換
     std::vector<llama_chat_message> messagesForLlama = to_llama_messages(messages);
 
     // Apply chat template
-    // チャットテンプレートを適用
+    // チャットテンプレート適用
     int newLen = llama_chat_apply_template(
         mModel,
         nullptr,
@@ -64,7 +88,7 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
     std::string promptStd(formatted.begin() + prevLen, formatted.begin() + newLen);
     std::string response;
 
-    // Tokenize prompt
+    // Tokenize the prompt
     // プロンプトをトークナイズ
     const int nPromptTokens = -llama_tokenize(
         mModel,
@@ -90,8 +114,8 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
         return;
     }
 
-    // Prepare single batch for decoding
-    // デコード用のバッチを準備
+    // Prepare a single batch for decoding
+    // 1バッチでデコードを行う準備
     llama_batch batch = llama_batch_get_one(promptTokens.data(), promptTokens.size());
     llama_token newTokenId;
 
@@ -100,7 +124,7 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
     int generatedTokenCount {0};
 
     // Decode until EOG
-    // 終了トークンに達するまでデコード
+    // 終了トークンまでデコードする
     while (true) {
         const int nCtxUsed = llama_get_kv_cache_used_cells(mCtx);
         if (llama_decode(mCtx, batch)) {
@@ -109,12 +133,12 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
         }
 
         // Sample next token
-        // 次のトークンをサンプリング
+        // 次トークンをサンプリング
         newTokenId = llama_sampler_sample(mSampler, mCtx, -1);
 
         if (llama_token_is_eog(mModel, newTokenId)) {
             // End-of-generation
-            // 終了トークン
+            // 生成終了
             break;
         }
 
@@ -126,16 +150,16 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
         }
 
         std::string piece(buf, n);
-        qDebug() << piece;
+        qDebug() << piece.c_str(); // or just piece if capturing
 
         response += piece;
 
-        // Emit partial progress
-        // 部分的なレスポンスを通知
+        // Emit partial response
+        // 部分的なレスポンスをemit
         emit partialResponseReady(QString::fromStdString(response));
 
         // Next batch
-        // 次のバッチを用意
+        // 次バッチを作成
         batch = llama_batch_get_one(&newTokenId, 1);
 
         // Cut off if too long
@@ -151,12 +175,13 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
             }
         }
 
-        // For immediate partial updates, we can process events
+        // Process events for immediate partial updates
+        // 部分更新を即時反映するためにイベント処理
         QCoreApplication::processEvents();
     }
 
-    // Update prevLen
-    // 次の呼び出しに備えて prevLen を更新
+    // Update prevLen for next usage
+    // 次回呼び出しに備えてprevLenを更新
     prevLen = llama_chat_apply_template(
         mModel,
         nullptr,
@@ -171,15 +196,27 @@ void InferenceEngine::generate(const QList<LlamaChatMessage>& messages)
     }
 
     // Emit final result
-    // 最終的な結果を通知
+    // 最終結果を通知
     emit generationFinished(QString::fromStdString(response));
 }
 
+/*
+  remoteInitialized():
+    - Returns the current state of mRemoteInitialized
+  remoteInitialized():
+    - mRemoteInitializedの現在の状態を返す
+*/
 bool InferenceEngine::remoteInitialized() const
 {
     return mRemoteInitialized;
 }
 
+/*
+  setRemoteInitialized(newRemoteInitialized):
+    - Updates mRemoteInitialized and emits remoteInitializedChanged if changed
+  setRemoteInitialized(newRemoteInitialized):
+    - mRemoteInitializedを更新し、変化があればremoteInitializedChangedをemit
+*/
 void InferenceEngine::setRemoteInitialized(bool newRemoteInitialized)
 {
     if (mRemoteInitialized == newRemoteInitialized)
@@ -188,9 +225,12 @@ void InferenceEngine::setRemoteInitialized(bool newRemoteInitialized)
     emit remoteInitializedChanged(mRemoteInitialized);
 }
 
-
-// to_llama_messages(...): convert from QList to std::vector
-// to_llama_messages(...): QList -> std::vector 変換
+/*
+  to_llama_messages(userMessages):
+    - Converts QList<LlamaChatMessage> to std::vector<llama_chat_message>
+  to_llama_messages(userMessages):
+    - QList<LlamaChatMessage>をstd::vector<llama_chat_message>に変換
+*/
 std::vector<llama_chat_message>
 InferenceEngine::to_llama_messages(const QList<LlamaChatMessage> &userMessages)
 {
@@ -206,8 +246,16 @@ InferenceEngine::to_llama_messages(const QList<LlamaChatMessage> &userMessages)
     return llamaMessages;
 }
 
-// do_engine_init(): loads model/context in background
-// do_engine_init(): バックグラウンドでモデル/コンテキストをロード
+/*
+  do_engine_init():
+    - Loads the model and context in a background thread
+    - Initializes the sampler
+    - Sets remoteInitialized(true) on success
+  do_engine_init():
+    - バックグラウンドでモデルとコンテキストをロード
+    - サンプラーを初期化
+    - 成功時にremoteInitialized(true)をセット
+*/
 void InferenceEngine::do_engine_init()
 {
     ggml_backend_load_all();
@@ -238,19 +286,29 @@ void InferenceEngine::do_engine_init()
     llama_sampler_chain_add(mSampler, llama_sampler_init_temp(0.8f));
     llama_sampler_chain_add(mSampler, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
 
-    // Notify remote side that init succeeded
-    // リモート側に初期化成功を通知
+    // Indicate successful init
+    // 初期化成功を通知
     setRemoteInitialized(true);
     qDebug() << "Engine initialization complete.";
     qDebug() << "m_remoteInitialized =" << remoteInitialized();
 }
 
+/*
+  reinitEngine():
+    - Frees existing model/context/sampler
+    - Resets remoteInitialized(false)
+    - Calls do_engine_init() again
+  reinitEngine():
+    - 既存のモデル/コンテキスト/サンプラーを解放
+    - remoteInitialized(false)にリセット
+    - do_engine_init()を再度呼び出し
+*/
 void InferenceEngine::reinitEngine()
 {
     qDebug() << "[reinitEngine] Re-initializing LLaMA engine...";
 
-    // 1) 既存の sampler / ctx / model を解放
-    //---------------------------------------------------
+    // 1) Free existing sampler / ctx / model
+    // 1) 既存のsampler / ctx / modelを解放
     if (mSampler) {
         llama_sampler_free(mSampler);
         mSampler = nullptr;
@@ -266,19 +324,25 @@ void InferenceEngine::reinitEngine()
         mModel = nullptr;
     }
 
-    // 2) remoteInitialized フラグをいったん下げる
-    //    （再度成功するまでfalseにしておき、クライアント側にもリセットが伝わる）
-    //---------------------------------------------------
+    // 2) Reset remoteInitialized to false
+    // 2) remoteInitialized を false にする
     setRemoteInitialized(false);
 
-    // 3) do_engine_init()を再度走らせる
-    //---------------------------------------------------
+    // 3) Rerun do_engine_init()
+    // 3) do_engine_init()を再実行
     do_engine_init();
 
     qDebug() << "[reinitEngine] Requested do_engine_init() again.";
 }
 
-// Default model path (CMake)
+/*
+  mModelPath:
+    - Defined via target_compile_definitions in CMake
+    - Provide a default if not specified
+  mModelPath:
+    - CMakeのtarget_compile_definitionsで定義
+    - 指定がない場合はエラー
+*/
 const std::string InferenceEngine::mModelPath {
 #ifdef LLAMA_MODEL_FILE
     LLAMA_MODEL_FILE
