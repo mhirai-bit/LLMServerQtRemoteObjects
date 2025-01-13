@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21.1)
 
-project(LLMServerQtRemoteObjects VERSION 1.0.0 LANGUAGES CXX)
+project(LLMRemoteServer VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -15,7 +15,7 @@ if (Qt6_VERSION VERSION_GREATER_EQUAL 6.3)
     qt_standard_project_setup()
 endif()
 
-qt_add_executable(LLMServerQtRemoteObjects
+qt_add_executable(LLMRemoteServer
     main.cpp
 
 
@@ -30,11 +30,11 @@ qt_add_executable(LLMServerQtRemoteObjects
 # C++コードからダウンロード済みの gguf モデルファイル名を参照できるようにする
 # Enable referencing the downloaded gguf model file name from C++ code
 # ----------------------------------------------------------------------------
-target_compile_definitions(LLMServerQtRemoteObjects PRIVATE
+target_compile_definitions(LLMRemoteServer PRIVATE
     LLAMA_MODEL_FILE="${LLAMA_MODEL_NAME}"
 )
 
-qt6_add_repc_sources(LLMServerQtRemoteObjects
+qt6_add_repc_sources(LLMRemoteServer
     ${CMAKE_CURRENT_LIST_DIR}/QtRemoteObjectsFiles/LlamaResponseGenerator.rep
 )
 
@@ -71,7 +71,7 @@ set(ALL_LIBS
     ${GGML_LIB}
 )
 
-target_include_directories(LLMServerQtRemoteObjects PRIVATE
+target_include_directories(LLMRemoteServer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/llama.cpp/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/llama.cpp/ggml/include
 )
@@ -82,10 +82,10 @@ if(APPLE)
     else()
         # macOS: .dylib をコピー
         # macOS: copy .dylib files
-        add_custom_command(TARGET LLMServerQtRemoteObjects POST_BUILD
+        add_custom_command(TARGET LLMRemoteServer POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${LLAMA_DYNAMIC_LIB_FILE_DIR}/libllama.dylib"
-            "$<TARGET_FILE_DIR:LLMServerQtRemoteObjects>"
+            "$<TARGET_FILE_DIR:LLMRemoteServer>"
             COMMENT "Copying libllama.dylib to QllamaTalkApp"
         )
 
@@ -93,10 +93,10 @@ if(APPLE)
             "${GGML_DYNAMIC_LIB_FILE_DIR}/libggml*.dylib"
         )
         foreach(dylib_file ${GGML_DYLIBS})
-            add_custom_command(TARGET LLMServerQtRemoteObjects POST_BUILD
+            add_custom_command(TARGET LLMRemoteServer POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${dylib_file}"
-                "$<TARGET_FILE_DIR:LLMServerQtRemoteObjects>"
+                "$<TARGET_FILE_DIR:LLMRemoteServer>"
                 COMMENT "Copying libggml*.dylib to QllamaTalkApp"
             )
         endforeach()
@@ -105,7 +105,7 @@ else()
     message(FATAL_ERROR "only macOS is supported")
 endif()
 
-target_link_libraries(LLMServerQtRemoteObjects PRIVATE
+target_link_libraries(LLMRemoteServer PRIVATE
     Qt6::Core
     Qt6::RemoteObjects
     Qt6::Concurrent
@@ -119,15 +119,15 @@ target_link_libraries(LLMServerQtRemoteObjects PRIVATE
 # Copy the downloaded gguf model file next to the app executable
 # ----------------------------------------------------------------------------
 add_custom_command(
-    TARGET LLMServerQtRemoteObjects POST_BUILD
+    TARGET LLMRemoteServer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_LIST_DIR}/llama_models/${LLAMA_MODEL_NAME}"
-        "$<TARGET_FILE_DIR:LLMServerQtRemoteObjects>"
+        "$<TARGET_FILE_DIR:LLMRemoteServer>"
     COMMENT "Copying ${LLAMA_MODEL_NAME} next to the QllamaTalkApp binary"
 )
 
 include(GNUInstallDirs)
-install(TARGETS LLMServerQtRemoteObjects
+install(TARGETS LLMRemoteServer
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
