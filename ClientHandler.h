@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QWebSocket>
-#include "inferenceengine.h"
+#include "InferenceEngine.h"
 
 /*
   ClientHandler:

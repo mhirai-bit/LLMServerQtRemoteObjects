@@ -1,4 +1,4 @@
-#include "inferenceengine.h"
+#include "InferenceEngine.h"
 #include <QDebug>
 #include <QThreadPool>
 

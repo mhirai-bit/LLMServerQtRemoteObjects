@@ -1,4 +1,4 @@
-#include "qtroremotegenerator.h"
+#include "QtRoRemoteGenerator.h"
 
 QtRORemoteGenerator::QtRORemoteGenerator(QObject *parent)
     : LlamaResponseGeneratorSimpleSource{parent}

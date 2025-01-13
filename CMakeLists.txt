@@ -17,11 +17,11 @@ endif()
 
 qt_add_executable(LLMServerQtRemoteObjects
     main.cpp
-    llamaresponsegenerator.cpp
-    llamaresponsegenerator.h
 
-    inferenceengine.h inferenceengine.cpp
-    qtroremotegenerator.h qtroremotegenerator.cpp
+
+
+    InferenceEngine.h InferenceEngine.cpp
+    QtRoRemoteGenerator.h QtRoRemoteGenerator.cpp
     QtWSRemoteGenerator.h QtWSRemoteGenerator.cpp
     ClientHandler.h ClientHandler.cpp
 )

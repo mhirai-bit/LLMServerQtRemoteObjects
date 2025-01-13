@@ -1,4 +1,4 @@
-#include "qtroremotegenerator.h"
+#include "QtRoRemoteGenerator.h"
 #include "QtWSRemoteGenerator.h"
 #include <QCoreApplication>
 

@@ -2,7 +2,7 @@
 #define QTROREMOTEGENERATOR_H
 
 #include "rep_LlamaResponseGenerator_source.h"  // Short definitions from .rep file / .repファイルからの定義
-#include "inferenceengine.h"
+#include "InferenceEngine.h"
 #include <QObject>
 #include <QString>
 
