@@ -8,12 +8,12 @@
 
 /*
   QtWSRemoteGenerator:
-    - Operates as a WebSocket server
+    - Operates as a non-secure WebSocket server (NonSecureMode)
     - For each new client connection, creates a ClientHandler
     - Each ClientHandler manages communication with one client
 
-  QtWSRemoteGeneratorクラス:
-    - WebSocketサーバーとして動作
+  QtWSRemoteGeneratorクラス (非セキュア版):
+    - WebSocketサーバーとして動作 (NonSecureMode)
     - 新規クライアント接続ごとにClientHandlerを生成
     - それぞれのClientHandlerがクライアントとのやり取りを担当
 */
@@ -23,11 +23,11 @@ class QtWSRemoteGenerator : public QObject
 public:
     /*
       Constructor:
-        - Creates a QWebSocketServer instance (NonSecureMode by default)
+        - Creates a QWebSocketServer in NonSecureMode
         - Parent is set to this object
 
       コンストラクタ:
-        - QWebSocketServerを生成 (NonSecureMode使用)
+        - NonSecureMode でQWebSocketServerを生成
         - 親オブジェクトはthisに設定
     */
     explicit QtWSRemoteGenerator(QObject *parent = nullptr);
@@ -36,6 +36,7 @@ public:
       Destructor:
         - Closes the server if it's listening
         - Deletes all ClientHandler instances
+
       デストラクタ:
         - サーバーがリッスン中ならクローズ
         - 生成済みのClientHandlerインスタンスを全て削除
@@ -46,6 +47,7 @@ public:
       startServer(port):
         - Binds QWebSocketServer to the specified port
         - Returns true if successful, false otherwise
+
       startServer(port):
         - 指定ポートを使用してQWebSocketServerを起動
         - 成功すればtrue、失敗すればfalseを返す
@@ -57,6 +59,7 @@ private slots:
       onNewConnection():
         - Called when a new client connection arrives
         - Creates a ClientHandler for each pending connection
+
       onNewConnection():
         - 新しいクライアント接続が来た時に呼ばれる
         - 保留中の接続ごとにClientHandlerを作成
@@ -64,8 +67,8 @@ private slots:
     void onNewConnection();
 
 private:
-    // The actual WebSocket server instance
-    // 実際のWebSocketサーバーインスタンス
+    // The actual WebSocket server instance (NonSecure)
+    // 非セキュア版のWebSocketサーバーインスタンス
     QWebSocketServer*       m_webSocketServer {nullptr};
 
     // List of active ClientHandler objects

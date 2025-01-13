@@ -17,9 +17,6 @@ endif()
 
 qt_add_executable(LLMRemoteServer
     main.cpp
-
-
-
     InferenceEngine.h InferenceEngine.cpp
     QtRoRemoteGenerator.h QtRoRemoteGenerator.cpp
     QtWSRemoteGenerator.h QtWSRemoteGenerator.cpp
@@ -89,18 +86,20 @@ if(APPLE)
             COMMENT "Copying libllama.dylib to QllamaTalkApp"
         )
 
-        file(GLOB GGML_DYLIBS
-            "${GGML_DYNAMIC_LIB_FILE_DIR}/libggml*.dylib"
-        )
-        foreach(dylib_file ${GGML_DYLIBS})
-            add_custom_command(TARGET LLMRemoteServer POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${dylib_file}"
-                "$<TARGET_FILE_DIR:LLMRemoteServer>"
-                COMMENT "Copying libggml*.dylib to QllamaTalkApp"
-            )
-        endforeach()
-    endif()
+    file(GLOB GGML_DYLIBS
+        "${GGML_DYNAMIC_LIB_FILE_DIR}/libggml*.dylib"
+        "${GGML_DYNAMIC_LIB_FILE_DIR}/ggml-blas/libggml*.dylib"
+        "${GGML_DYNAMIC_LIB_FILE_DIR}/ggml-metal/libggml*.dylib"
+    )
+foreach(dylib_file ${GGML_DYLIBS})
+    add_custom_command(TARGET LLMRemoteServer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${dylib_file}"
+        "$<TARGET_FILE_DIR:LLMRemoteServer>"
+        COMMENT "Copying libggml*.dylib to QllamaTalkApp"
+    )
+endforeach()
+endif()
 else()
     message(FATAL_ERROR "only macOS is supported")
 endif()
@@ -121,8 +120,8 @@ target_link_libraries(LLMRemoteServer PRIVATE
 add_custom_command(
     TARGET LLMRemoteServer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_LIST_DIR}/llama_models/${LLAMA_MODEL_NAME}"
-        "$<TARGET_FILE_DIR:LLMRemoteServer>"
+    "${CMAKE_CURRENT_LIST_DIR}/llama_models/${LLAMA_MODEL_NAME}"
+    "$<TARGET_FILE_DIR:LLMRemoteServer>"
     COMMENT "Copying ${LLAMA_MODEL_NAME} next to the QllamaTalkApp binary"
 )
 
